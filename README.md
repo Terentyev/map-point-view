@@ -1,9 +1,11 @@
 **OpenLayers**
+
 ./OpenLayers/OpenLayers.js
             /theme/
             /img/
 
 **Links**
+
 [OpenLayers](http://openlayers.org/)
 
 [Heat map js by Patrik Wied](http://www.patrick-wied.at/static/heatmapjs/)
