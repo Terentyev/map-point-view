@@ -26,6 +26,8 @@ Init: function (map) {
         );
         this.map.addLayers([this.layer]);
 
+        this.data = [];
+
         this.UpdateFeatures();
         this.map.events.register("zoomend", this, function(e) {
             e.object.MapPointView.UpdateFeatures();
@@ -38,47 +40,46 @@ Init: function (map) {
 UpdateFeatures: function () {
                   this.layer.removeAllFeatures();
                   // Add features to layer
-                  this.layer.addFeatures([
-                      new OpenLayers.Feature.Vector(
-                        this.CreatePoint(),
-                        {},
-                        {
-                          graphicName: 'cross',
-                          strokeColor: '#f00',
-                          strokeWidth: 2,
-                          fillOpacity: 0,
-                          pointRadius: 10
-                        }
-                      ),
-                      this.CreateCircle()
-                  ]);
+                  for (var i in this.data) {
+                    var data = this.data[i];
+                    this.layer.addFeatures([
+                        new OpenLayers.Feature.Vector(
+                          this.CreatePoint(data.x, data.y),
+                          {},
+                          {
+                            graphicName: 'cross',
+                            strokeColor: '#f00',
+                            strokeWidth: 2,
+                            fillOpacity: 0,
+                            pointRadius: 10
+                          }
+                        ),
+                        this.CreateCircle(data.x, data.y)
+                    ]);
+                  }
                 },
 
 /**
  * Create point object.
  * It's temporary function TODO: delete this function.
  */
-CreatePoint: function () {
-               var point = new OpenLayers.Geometry.Point(
-                   14685693.354415141,
-                   5331885.705134858
-               );
-               return point;
+CreatePoint: function (x, y) {
+               return new OpenLayers.Geometry.Point(x, y);
              },
 
 /**
  * Create circle object.
  * TODO: replace CreatePoint() on argument of this function.
  */
-CreateCircle: function () {
+CreateCircle: function (x, y) {
                 var style = {
                   fillColor: '#000',
                   fillOpacity: 0.1,
                   strokeWidth: 0
                 };
-                var circle = new OpenLayers.Feature.Vector(
+                return new OpenLayers.Feature.Vector(
                     OpenLayers.Geometry.Polygon.createRegularPolygon(
-                      this.CreatePoint(),
+                      this.CreatePoint(x, y),
                       // TODO: replace this hard code radius on argument of
                       // function.
                       // This radius should be passed in map units and we should
@@ -90,7 +91,36 @@ CreateCircle: function () {
                     {},
                     style
                 );
+              },
 
-                return circle;
-              }
+/**
+ * Load data as map features.
+ * At now data is a object:
+ *   {
+ *     keys: {
+ *     },
+ *     headers: [],
+ *     data: []
+ *   }
+ * Where 'keys' is a user selected correlation between in-file columns and
+ * program columns.
+ * Array 'header' is an array of in-file columns' captions.
+ * Array 'data' is an 2D array of massive data.
+ * Example of using:
+ *   alert( data.data[i][data.keys.x] );
+ * It's show to user a 'x'-coordinate in 'i'-row of data.
+ */
+LoadData: function (data) {
+            this.data = [];
+            for (var i in data.data) {
+              this.data.push({
+                objectid: data.data[i][data.keys.objectid],
+                x: data.data[i][data.keys.x],
+                y: data.data[i][data.keys.y],
+                value: data.data[i][data.keys.value]
+              });
+            }
+            this.UpdateFeatures();
+            console.log('Data has been loaded');
+          }
 }
