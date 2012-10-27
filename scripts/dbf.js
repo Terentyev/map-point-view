@@ -1,3 +1,7 @@
+/*
+   DBF Parser from https://github.com/Terentyev/js-shapefile-to-geojson
+ */
+
 (function(window,undefined){
 
     var
