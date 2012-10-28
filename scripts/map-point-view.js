@@ -18,10 +18,37 @@ var MapPointView = function(map) {
   map.MapPointView = this;
   this.map = map;
 
+  var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
+  renderer = (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers;
+ 
   // Create and register layer
   this.layer = new OpenLayers.Layer.Vector(
       "MapPointViewLayer",
-      {visibility: true}
+      {
+        styleMap: new OpenLayers.StyleMap({'default':{
+            strokeColor: "#00FF00",
+            strokeOpacity: 1,
+            strokeWidth: 3,
+            fillColor: "#FF5500",
+            fillOpacity: 0.5,
+            pointRadius: 6,
+            pointerEvents: "visiblePainted",
+            // label with \n linebreaks
+            label : "name: ${name}",
+            
+            fontColor: "${favColor}",
+            fontSize: "12px",
+            fontFamily: "Courier New, monospace",
+            fontWeight: "bold",
+            labelAlign: "${align}",
+            labelXOffset: "${xOffset}",
+            labelYOffset: "${yOffset}",
+            labelOutlineColor: "white",
+            labelOutlineWidth: 3
+        }}),
+        renderers: renderer,
+        visibility: true
+      }
   );
   this.map.addLayers([this.layer]);
 
@@ -47,7 +74,7 @@ UpdateFeatures: function () {
                       .transform(this.data.projection, this.layer.projection);
 
                     this.layer.addFeatures([
-                        new OpenLayers.Feature.Vector(
+/*                        new OpenLayers.Feature.Vector(
                           point,
                           {},
                           {
@@ -57,7 +84,7 @@ UpdateFeatures: function () {
                             fillOpacity: 0,
                             pointRadius: 10
                           }
-                        ),
+                        ),*/
                         this.CreateCircle(point)
                     ]);
                   }
@@ -92,7 +119,7 @@ CreateCircle: function (point) {
                       40,
                       0
                     ),
-                    {},
+                    {name: 'xxx', favColor: 'purple', align: 'lb'},
                     style
                 );
               },
