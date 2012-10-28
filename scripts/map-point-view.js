@@ -44,8 +44,8 @@ var MapPointView = function(map) {
             labelOutlineColor: "white",
             labelOutlineWidth: 3
         }}),
-        renderers: renderer/*,
-        visibility: true*/
+        renderers: renderer,
+        visibility: true
       }
   );
   this.map.addLayers([this.layer]);
