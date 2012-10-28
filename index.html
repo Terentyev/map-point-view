@@ -48,7 +48,7 @@
         map.addControl(new OpenLayers.Control.LayerSwitcher());
         map.zoomToMaxExtent();
 
-        MapPointView.Init(map);
+        new MapPointView(map);
 
         $('#select-fields-form').dialog({
             autoOpen: false,

@@ -11,29 +11,29 @@
  * That's all.
  */
 
-var MapPointView = {
 /**
  * Initialize object MapPointView on map.
  */
-Init: function (map) {
-        map.MapPointView = this;
-        this.map = map;
+var MapPointView = function(map) {
+  map.MapPointView = this;
+  this.map = map;
 
-        // Create and register layer
-        this.layer = new OpenLayers.Layer.Vector(
-            "MapPointViewLayer",
-            {visibility: true}
-        );
-        this.map.addLayers([this.layer]);
+  // Create and register layer
+  this.layer = new OpenLayers.Layer.Vector(
+      "MapPointViewLayer",
+      {visibility: true}
+  );
+  this.map.addLayers([this.layer]);
 
-        this.data = {data: [], projection: null};
+  this.data = {data: [], projection: null};
 
-        this.UpdateFeatures();
-        this.map.events.register("zoomend", this, function(e) {
-            e.object.MapPointView.UpdateFeatures();
-        });
-      },
+  this.UpdateFeatures();
+  this.map.events.register("zoomend", this, function(e) {
+      e.object.MapPointView.UpdateFeatures();
+  });
+};
 
+MapPointView.prototype = {
 /**
  * Refresh all features on layer.
  */
@@ -130,4 +130,4 @@ LoadData: function (data, projection) {
             this.UpdateFeatures();
             console.log('Data has been loaded');
           }
-}
+};
