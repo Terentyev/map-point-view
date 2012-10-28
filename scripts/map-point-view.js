@@ -6,7 +6,7 @@
  *    var map;
  *    map = new OpenLayers.Map({...});
  *    ...
- *    MapPointView.Init(map);
+ *    new MapPointView(map);
  *
  * That's all.
  */
