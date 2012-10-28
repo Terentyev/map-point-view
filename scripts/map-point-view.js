@@ -26,7 +26,7 @@ Init: function (map) {
         );
         this.map.addLayers([this.layer]);
 
-        this.data = [];
+        this.data = {data: [], projection: null};
 
         this.UpdateFeatures();
         this.map.events.register("zoomend", this, function(e) {
@@ -40,11 +40,15 @@ Init: function (map) {
 UpdateFeatures: function () {
                   this.layer.removeAllFeatures();
                   // Add features to layer
-                  for (var i in this.data) {
-                    var data = this.data[i];
+                  for (var i in this.data.data) {
+                    var data = this.data.data[i];
+                    var point = this
+                      .CreatePoint(data.x, data.y)
+                      .transform(this.data.projection, this.layer.projection);
+
                     this.layer.addFeatures([
                         new OpenLayers.Feature.Vector(
-                          this.CreatePoint(data.x, data.y),
+                          point,
                           {},
                           {
                             graphicName: 'cross',
@@ -54,7 +58,7 @@ UpdateFeatures: function () {
                             pointRadius: 10
                           }
                         ),
-                        this.CreateCircle(data.x, data.y)
+                        this.CreateCircle(point)
                     ]);
                   }
                 },
@@ -71,7 +75,7 @@ CreatePoint: function (x, y) {
  * Create circle object.
  * TODO: replace CreatePoint() on argument of this function.
  */
-CreateCircle: function (x, y) {
+CreateCircle: function (point) {
                 var style = {
                   fillColor: '#000',
                   fillOpacity: 0.1,
@@ -79,7 +83,7 @@ CreateCircle: function (x, y) {
                 };
                 return new OpenLayers.Feature.Vector(
                     OpenLayers.Geometry.Polygon.createRegularPolygon(
-                      this.CreatePoint(x, y),
+                      point,
                       // TODO: replace this hard code radius on argument of
                       // function.
                       // This radius should be passed in map units and we should
@@ -110,10 +114,13 @@ CreateCircle: function (x, y) {
  *   alert( data.data[i][data.keys.x] );
  * It's show to user a 'x'-coordinate in 'i'-row of data.
  */
-LoadData: function (data) {
-            this.data = [];
+LoadData: function (data, projection) {
+            this.data = {
+              data: [],
+              'projection': new OpenLayers.Projection(projection)
+            };
             for (var i in data.data) {
-              this.data.push({
+              this.data.data.push({
                 objectid: data.data[i][data.keys.objectid],
                 x: data.data[i][data.keys.x],
                 y: data.data[i][data.keys.y],

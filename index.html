@@ -56,6 +56,8 @@
             width: 350,
             modal: true
         });
+
+        $('#proj_src').val('EGSP:28483');
     }
 
 </script>
@@ -75,13 +77,15 @@
         <form>
             <fieldset>
                 <label for="objectid">Object id</label>
-                <select id="objectid" name="objectid"></select>
+                <select id="objectid" name="objectid" class="user-data"></select>
                 <label for="x">X</label>
-                <select id="x" name="x"></select>
+                <select id="x" name="x" class="user-data"></select>
                 <label for="y">Y</label>
-                <select id="y" name="y"></select>
+                <select id="y" name="y" class="user-data"></select>
                 <label for="value">Value</label>
-                <select id="value" name="value"></select>
+                <select id="value" name="value" class="user-data"></select>
+                <label for="proj_src">Projection source</label>
+                <input type="text" id="proj_src" name="proj_src" class="projection"></input>
             </fieldset>
         </form>
     </div>

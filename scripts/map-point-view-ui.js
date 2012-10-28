@@ -22,7 +22,7 @@ function MapPointViewUI_load_data(file, form) {
  * Show form to user for select fields.
  */
 function MapPointViewUI_select_fields(data, form) {
-  $('select', form).each(function (index) {
+  $('select.user-data', form).each(function (index) {
       $(this).find('option').remove();
       for (var j in data.headers) {
         var option = $('<option></option>')
@@ -40,10 +40,10 @@ function MapPointViewUI_select_fields(data, form) {
       buttons: {
           'Confirm': function() {
               data.keys = {};
-              $('select', form).each(function () {
+              $('select.user-data', form).each(function () {
                 data.keys[$(this).attr('id')] = $(this).val();
               });
-              map.MapPointView.LoadData(data);
+              map.MapPointView.LoadData(data, $('#proj_src', form).val());
               $(this).dialog('close');
           },
           Cancel: function() {
