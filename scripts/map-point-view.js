@@ -34,20 +34,18 @@ var MapPointView = function(map) {
             pointRadius: 6,
             pointerEvents: "visiblePainted",
             // label with \n linebreaks
-            label : "name: ${name}",
+            label : "${value}",
             
-            fontColor: "${favColor}",
+            fontColor: "black",
             fontSize: "12px",
             fontFamily: "Courier New, monospace",
             fontWeight: "bold",
-            labelAlign: "${align}",
-            labelXOffset: "${xOffset}",
-            labelYOffset: "${yOffset}",
+            labelAlign: "cm",
             labelOutlineColor: "white",
             labelOutlineWidth: 3
         }}),
-        renderers: renderer,
-        visibility: true
+        renderers: renderer/*,
+        visibility: true*/
       }
   );
   this.map.addLayers([this.layer]);
@@ -74,18 +72,7 @@ UpdateFeatures: function () {
                       .transform(this.data.projection, this.layer.projection);
 
                     this.layer.addFeatures([
-/*                        new OpenLayers.Feature.Vector(
-                          point,
-                          {},
-                          {
-                            graphicName: 'cross',
-                            strokeColor: '#f00',
-                            strokeWidth: 2,
-                            fillOpacity: 0,
-                            pointRadius: 10
-                          }
-                        ),*/
-                        this.CreateCircle(point)
+                        this.CreateCircle(point, data.value)
                     ]);
                   }
                 },
@@ -102,7 +89,7 @@ CreatePoint: function (x, y) {
  * Create circle object.
  * TODO: replace CreatePoint() on argument of this function.
  */
-CreateCircle: function (point) {
+CreateCircle: function (point, value) {
                 var style = {
                   fillColor: '#000',
                   fillOpacity: 0.1,
@@ -119,8 +106,7 @@ CreateCircle: function (point) {
                       40,
                       0
                     ),
-                    {name: 'xxx', favColor: 'purple', align: 'lb'},
-                    style
+                    {'value': value}
                 );
               },
 
