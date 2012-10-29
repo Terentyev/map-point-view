@@ -57,5 +57,7 @@ function MapPointViewLoadData_from_dBase(file_data) {
  * Parse file data and extract geodata from CSV.
  */
 function MapPointViewLoadData_from_CSV(file_data) {
-  return CSVToArray(file_data);
+  var data = CSVToArray(file_data);
+  data.pop();
+  return data;
 }
