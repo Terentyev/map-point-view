@@ -12,6 +12,29 @@
  */
 
 /**
+ * Fully recursive clone of variable x.
+ */
+function clone(x) {
+  if (x == null || typeof(x) != 'object') {
+    return x;
+  }
+
+  var tmp = x.constructor();
+  for (var key in x) {
+    tmp[key] = clone(x[key]);
+  }
+
+  return tmp;
+}
+
+/**
+ * Mathematical square.
+ */
+function sqr(x) {
+  return x * x;
+}
+
+/**
  * Initialize object MapPointView on map.
  */
 var MapPointView = function(map) {
@@ -63,10 +86,14 @@ MapPointView.prototype = {
  * Refresh all features on layer.
  */
 UpdateFeatures: function () {
+                  // Clusterate data
+                  var clustering_data = this.ClusterateFeatures();
+
                   this.layer.removeAllFeatures();
+
                   // Add features to layer
-                  for (var i in this.data.data) {
-                    var data = this.data.data[i];
+                  for (var i in clustering_data) {
+                    var data = clustering_data[i];
                     var point = this
                       .CreatePoint(data.x, data.y)
                       .transform(this.data.projection, this.layer.projection);
@@ -142,5 +169,108 @@ LoadData: function (data, projection) {
             }
             this.UpdateFeatures();
             console.log('Data has been loaded');
-          }
+          },
+
+/**
+ *
+ */
+ClusterateFeatures: function () {
+                      var data = clone(this.data.data);
+                      var distances = [];
+                      var clusters = [];
+                      var max_distance = 20 * this.map.getResolution();
+
+                      // Build distance on level-0 between each point
+                      for (var i in data) {
+                        distances[i] = [];
+                        for (var j in data) {
+                          if (1*j <= 1*i) continue;
+                          distances[i][j] = Math.sqrt(
+                              sqr(data[i].x - data[j].x) +
+                              sqr(data[i].y - data[j].y)
+                          );
+                        }
+                        clusters.push([i]);
+                      }
+
+                      while (true) {
+                        // Find minimum distance
+                        var min_distance = null;
+                        var remember_i = null;
+                        var remember_j = null;
+                        for (var i in distances) {
+                          for (var j in distances[i]) {
+                            if (
+                                min_distance === null
+                                || min_distance > distances[i][j]
+                            ) {
+                              min_distance = distances[i][j];
+                              remember_i = i;
+                              remember_j = j;
+                            }
+                          }
+                        }
+
+                        if (min_distance === null || min_distance > max_distance) {
+                          // Stop loop if minimum distance too big
+                          break;
+                        }
+
+                        // Merge points and clusters
+                        var new_cluster = clone(clusters[remember_i]).concat(clusters[remember_j]);
+                        var new_x = 0;
+                        var new_y = 0;
+                        for (var i in new_cluster) {
+                          new_x += data[new_cluster[i]].x / new_cluster.length;
+                          new_y += data[new_cluster[i]].y / new_cluster.length;
+                        }
+
+                        var new_distance_row = [];
+                        distances.push(new_distance_row);
+                        clusters.push(new_cluster);
+                        delete distances[remember_i];
+                        delete distances[remember_j];
+                        delete clusters[remember_i];
+                        delete clusters[remember_j];
+                        for (var i in distances) {
+                          if (i*1+1 == distances.length) break;
+                          delete distances[i][remember_j];
+                          delete distances[i][remember_i];
+
+                          // Calculate center of clusters[i].
+                          var ix = 0;
+                          var iy = 0;
+                          for (var j in clusters[i]) {
+                            ix += data[clusters[i][j]].x / clusters[i].length;
+                            iy += data[clusters[i][j]].y / clusters[i].length;
+                          }
+
+                          var new_distance = Math.sqrt(
+                              sqr(new_x - ix) +
+                              sqr(new_y - iy)
+                          );
+                          new_distance_row[i] = new_distance;
+                        }
+                      }
+
+                      data = [];
+                      // Build features data by clusters.
+                      for (var i in clusters) {
+                        var x = 0;
+                        var y = 0;
+                        var value = 0;
+                        for (var j in clusters[i]) {
+                          x += this.data.data[clusters[i][j]].x / clusters[i].length;
+                          y += this.data.data[clusters[i][j]].y / clusters[i].length;
+                          value += 1*this.data.data[clusters[i][j]].value;
+                        }
+                        data.push({
+                            x: x,
+                            y: y,
+                            'value': value
+                        });
+                      }
+
+                      return data;
+                    }
 };
