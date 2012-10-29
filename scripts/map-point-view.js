@@ -11,6 +11,10 @@
  * That's all.
  */
 
+var DATA_REPRESENT_TYPE_DEFAULT = 'default';
+var DATA_REPRESENT_TYPE_CLUSTER = 'cluster';
+var DATA_REPRESENT_TYPE_HEAT_MAP = 'heatmap';
+
 /**
  * Fully recursive clone of variable x.
  */
@@ -49,23 +53,19 @@ var MapPointView = function(map) {
       "MapPointViewLayer",
       {
         styleMap: new OpenLayers.StyleMap({'default':{
-            strokeColor: "#00FF00",
-            strokeOpacity: 1,
-            strokeWidth: 3,
-            fillColor: "#FF5500",
-            fillOpacity: 0.5,
-            pointRadius: 6,
+            strokeColor: "#777777",
+            strokeWidth: 1,
+            fillColor: "#FF2200",
+            fillOpacity: 1,
             pointerEvents: "visiblePainted",
-            // label with \n linebreaks
             label : "${value}",
             
             fontColor: "black",
-            fontSize: "12px",
+            fontSize: "10px",
             fontFamily: "Courier New, monospace",
-            fontWeight: "bold",
             labelAlign: "cm",
             labelOutlineColor: "white",
-            labelOutlineWidth: 3
+            labelOutlineWidth: 1
         }}),
         renderers: renderer,
         visibility: true
@@ -74,6 +74,7 @@ var MapPointView = function(map) {
   this.map.addLayers([this.layer]);
 
   this.data = {data: [], projection: null};
+  this.data_represent_type = DATA_REPRESENT_TYPE_DEFAULT;
 
   this.UpdateFeatures();
   this.map.events.register("zoomend", this, function(e) {
@@ -87,7 +88,18 @@ MapPointView.prototype = {
  */
 UpdateFeatures: function () {
                   // Clusterate data
-                  var clustering_data = this.ClusterateFeatures();
+                  var clustering_data;
+                  switch (this.data_represent_type) {
+                    case DATA_REPRESENT_TYPE_CLUSTER:
+                      clustering_data = this.ClusterateFeatures();
+                      break;
+                    case DATA_REPRESENT_TYPE_HEAT_MAP:
+                      alert('Not implemented yet');
+                      break;
+                    default:
+                      clustering_data = this.DefaultFeatures();
+                      break;
+                  }
 
                   this.layer.removeAllFeatures();
 
@@ -99,7 +111,7 @@ UpdateFeatures: function () {
                       .transform(this.data.projection, this.layer.projection);
 
                     this.layer.addFeatures([
-                        this.CreateCircle(point, data.value)
+                        this.CreateCircle(point, data.r, data.value)
                     ]);
                   }
                 },
@@ -116,12 +128,7 @@ CreatePoint: function (x, y) {
  * Create circle object.
  * TODO: replace CreatePoint() on argument of this function.
  */
-CreateCircle: function (point, value) {
-                var style = {
-                  fillColor: '#000',
-                  fillOpacity: 0.1,
-                  strokeWidth: 0
-                };
+CreateCircle: function (point, radius, value) {
                 return new OpenLayers.Feature.Vector(
                     OpenLayers.Geometry.Polygon.createRegularPolygon(
                       point,
@@ -129,7 +136,7 @@ CreateCircle: function (point, value) {
                       // function.
                       // This radius should be passed in map units and we should
                       // scale from pixels.
-                      10 * this.map.getResolution(),
+                      10 * radius * this.map.getResolution(),
                       40,
                       0
                     ),
@@ -172,7 +179,29 @@ LoadData: function (data, projection) {
           },
 
 /**
- *
+ * Set data represent type.
+ */
+SetDataRepresentType: function(dr_type) {
+                        this.data_represent_type = dr_type;
+                        this.UpdateFeatures();
+                      },
+
+/**
+ * Default Features.
+ */
+DefaultFeatures: function () {
+                   var data = clone(this.data.data);
+
+                   for (var i in data) {
+                     data[i].value = '';
+                     data[i].r = 1;
+                   }
+
+                   return data;
+                 },
+
+/**
+ * Calculate clusters.
  */
 ClusterateFeatures: function () {
                       var data = clone(this.data.data);
@@ -232,8 +261,10 @@ ClusterateFeatures: function () {
                         delete distances[remember_j];
                         delete clusters[remember_i];
                         delete clusters[remember_j];
+
                         for (var i in distances) {
                           if (i*1+1 == distances.length) break;
+
                           delete distances[i][remember_j];
                           delete distances[i][remember_i];
 
@@ -254,6 +285,7 @@ ClusterateFeatures: function () {
                       }
 
                       data = [];
+                      var min_value = null;
                       // Build features data by clusters.
                       for (var i in clusters) {
                         var x = 0;
@@ -269,6 +301,19 @@ ClusterateFeatures: function () {
                             y: y,
                             'value': value
                         });
+                        if (min_value === null || min_value > value) {
+                          min_value = value;
+                        }
+                      }
+
+                      if (min_value == 0) {
+                        min_value = 1;
+                      }
+
+                      // Set for each cluster a cluster-radius
+                      for (var i in data) {
+                        data[i].r = data[i].value / min_value;
+                        data[i].value = Math.round(data[i].value * 100) / 100;
                       }
 
                       return data;

@@ -68,6 +68,11 @@
 <div>
     <input type="file" id="data_file" name="data_file"/>
     <button onclick="MapPointViewUI_load_data($('#data_file').prop('files')[0], $('#select-fields-form'));">Load</button>
+    <select onchange="map.MapPointView.SetDataRepresentType($(this).val());">
+      <option value="default" selected="selected">Default</option>
+      <option value="cluster">Cluster</option>
+      <option value="heatmap">Heat map</option>
+    </select>
 </div>
 <div id="map"></div>
 
