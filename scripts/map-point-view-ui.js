@@ -33,21 +33,25 @@ function MapPointViewUI_load_data(file_input, form) {
       return;
     }
 
+    var file_name;
+    var slice;
     var reader = new FileReader();
 
-    reader.onload = function(e) {
-      if (e.target.readyState == FileReader.DONE) {
-        MapPointViewUI_process_file_data(file.fileName, e.target.result, form);
-      }
-    };
-
-    var slice = null;
     if (jQuery.browser.mozilla) {
       slice = file.mozSlice(0, file.size);
+      file_name = file.name;
     }
     else {
       slice = file.slice(0, file.size);
+      file_name = file.fileName;
     }
+
+    reader.onload = function(e) {
+      if (e.target.readyState == FileReader.DONE) {
+        MapPointViewUI_process_file_data(file_name, e.target.result, form);
+      }
+    };
+
     reader.readAsBinaryString(slice);
   }
 }
@@ -96,5 +100,7 @@ function MapPointViewUI_select_fields(data, form) {
  */
 function MapPointViewUI_process_file_data(file_name, file_content, form) {
   var data = MapPointViewLoadData(file_name, file_content);
-  MapPointViewUI_select_fields(data, form);
+  if (data.header.length) {
+    MapPointViewUI_select_fields(data, form);
+  }
 }
