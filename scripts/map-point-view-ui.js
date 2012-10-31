@@ -18,7 +18,7 @@ function MapPointViewUI_load_data(file_input, form) {
        
       file.Close();
        
-      MapPointViewUI_process_file_data(file_name, file_content);;
+      MapPointViewUI_process_file_data(file_name, file_content, form);;
     } catch (e) {
       if (e.number == -2146827859) {
         alert('Unable to access local files due to browser security settings. ' +
@@ -37,7 +37,7 @@ function MapPointViewUI_load_data(file_input, form) {
 
     reader.onload = function(e) {
       if (e.target.readyState == FileReader.DONE) {
-        MapPointViewUI_process_file_data(file.fileName, e.target.result);
+        MapPointViewUI_process_file_data(file.fileName, e.target.result, form);
       }
     };
 
@@ -94,7 +94,7 @@ function MapPointViewUI_select_fields(data, form) {
 /**
  * Process read data.
  */
-function MapPointViewUI_process_file_data(file_name, data) {
-  var data = MapPointViewLoadData(file, e.target.result);
+function MapPointViewUI_process_file_data(file_name, file_content, form) {
+  var data = MapPointViewLoadData(file_name, file_content);
   MapPointViewUI_select_fields(data, form);
 }
