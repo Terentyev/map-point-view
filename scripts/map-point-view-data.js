@@ -6,6 +6,7 @@ function MapPointViewLoadData(file_name, file_data) {
   var data = [];
   var ext_pattern = /\.[^.]*$/;
   var ext = ext_pattern.exec(file_name);
+  var result = {headers: [], data: []};
 
   ext = (ext + "").toLowerCase();
 
@@ -18,12 +19,12 @@ function MapPointViewLoadData(file_name, file_data) {
       break;
     default:
       alert('Unsupported file type: ' + ext);
-      return;
   }
 
-  var result = {};
-  result.headers = data.shift();
-  result.data = data;
+  if (data.length) {
+    result.headers = data.shift();
+    result.data = data;
+  }
   return result;
 };
 
