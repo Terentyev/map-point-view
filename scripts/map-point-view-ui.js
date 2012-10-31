@@ -2,17 +2,18 @@
  * Open file and read it.
  */
 function MapPointViewUI_load_data(file_input, form) {
+  var file_input = $('#' + file_input);
   if (/*@cc_on!@*/0) {
     // is MSIE
-    var files = document.getElementById(file_input).files;
-    if (files.length != 0) {
-      alert('Should select one file');
+    var file_name = file_input.val();
+
+    if (!file_name) {
       return;
     }
 
     try {
       var fso = new ActiveXObject("Scripting.FileSystemObject");
-      var file = fso.OpenTextFile(files[0].file, 1);
+      var file = fso.OpenTextFile(file_name, 1);
       var fileContent = file.ReadAll();
        
       file.Close();
@@ -27,7 +28,7 @@ function MapPointViewUI_load_data(file_input, form) {
     }
   }
   else {
-    var file = $('#' + file_input).prop('files')[0];
+    var file = file_input.prop('files')[0];
     if (!file) {
       return;
     }
