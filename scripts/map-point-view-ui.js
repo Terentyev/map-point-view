@@ -14,11 +14,11 @@ function MapPointViewUI_load_data(file_input, form) {
     try {
       var fso = new ActiveXObject("Scripting.FileSystemObject");
       var file = fso.OpenTextFile(file_name, 1);
-      var fileContent = file.ReadAll();
+      var file_content = file.ReadAll();
        
       file.Close();
        
-      return fileContent;
+      MapPointViewUI_process_file_data(file_name, file_content);;
     } catch (e) {
       if (e.number == -2146827859) {
         alert('Unable to access local files due to browser security settings. ' +
@@ -37,8 +37,7 @@ function MapPointViewUI_load_data(file_input, form) {
 
     reader.onload = function(e) {
       if (e.target.readyState == FileReader.DONE) {
-        var data = MapPointViewLoadData(file, e.target.result);
-        MapPointViewUI_select_fields(data, form);
+        MapPointViewUI_process_file_data(file.fileName, e.target.result);
       }
     };
 
@@ -90,4 +89,12 @@ function MapPointViewUI_select_fields(data, form) {
           $( this ).dialog('close');
       }
   }).dialog('open');
+}
+
+/**
+ * Process read data.
+ */
+function MapPointViewUI_process_file_data(file_name, data) {
+  var data = MapPointViewLoadData(file, e.target.result);
+  MapPointViewUI_select_fields(data, form);
 }

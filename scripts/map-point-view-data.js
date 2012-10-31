@@ -2,10 +2,10 @@
  * Main function.
  * Test file extension and load data from file_data by file format.
  */
-function MapPointViewLoadData(file, file_data) {
+function MapPointViewLoadData(file_name, file_data) {
   var data = [];
   var ext_pattern = /\.[^.]*$/;
-  var ext = ext_pattern.exec(file.fileName);
+  var ext = ext_pattern.exec(file_name);
 
   ext = (ext + "").toLowerCase();
 
