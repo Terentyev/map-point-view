@@ -49,7 +49,7 @@ var win = self,
             t = this,
             i = t.length = data.length;
         t.offset = 0;
-        for(var i = 0; data[i]; i++){ buff.push(fromCharCode(data.charCodeAt(i) & 0xff)); }
+        for(var i in data){ buff.push(fromCharCode(data.charCodeAt(i) & 0xff)); }
         t._buffer = buff.join('');
         t._bitBuffer = null;
         t._bitOffset = 8;
