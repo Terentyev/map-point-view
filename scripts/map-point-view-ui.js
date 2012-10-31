@@ -100,7 +100,7 @@ function MapPointViewUI_select_fields(data, form) {
  */
 function MapPointViewUI_process_file_data(file_name, file_content, form) {
   var data = MapPointViewLoadData(file_name, file_content);
-  if (data.header.length) {
+  if (data.headers.length) {
     MapPointViewUI_select_fields(data, form);
   }
 }
