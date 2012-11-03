@@ -15,6 +15,9 @@ var DATA_REPRESENT_TYPE_DEFAULT = 'default';
 var DATA_REPRESENT_TYPE_CLUSTER = 'cluster';
 var DATA_REPRESENT_TYPE_HEAT_MAP = 'heatmap';
 
+var MAX_CLUSTER_RADIUS = 20;
+var MIN_CLUSTER_RADIUS = 10;
+
 /**
  * Fully recursive clone of variable x.
  */
@@ -136,7 +139,7 @@ CreateCircle: function (point, radius, value) {
                       // function.
                       // This radius should be passed in map units and we should
                       // scale from pixels.
-                      10 * radius * this.map.getResolution(),
+                      radius * this.map.getResolution(),
                       40,
                       0
                     ),
@@ -194,7 +197,7 @@ DefaultFeatures: function () {
 
                    for (var i in data) {
                      data[i].value = '';
-                     data[i].r = 1;
+                     data[i].r = MIN_CLUSTER_RADIUS;
                    }
 
                    return data;
@@ -286,6 +289,7 @@ ClusterateFeatures: function () {
 
                       data = [];
                       var min_value = null;
+                      var max_value = null;
                       // Build features data by clusters.
                       for (var i in clusters) {
                         var x = 0;
@@ -304,15 +308,23 @@ ClusterateFeatures: function () {
                         if (min_value === null || min_value > value) {
                           min_value = value;
                         }
+                        if (max_value === null || max_value < value) {
+                          max_value = value;
+                        }
                       }
 
-                      if (min_value == 0) {
-                        min_value = 1;
+                      if (max_value == min_value) {
+                        max_value += 1;
                       }
 
+                      var rad_koef =
+                        (MAX_CLUSTER_RADIUS - MIN_CLUSTER_RADIUS)
+                        / (max_value - min_value);
                       // Set for each cluster a cluster-radius
                       for (var i in data) {
-                        data[i].r = data[i].value / min_value;
+                        data[i].r =
+                          rad_koef * (data[i].value - min_value)
+                          + MIN_CLUSTER_RADIUS;
                         data[i].value = Math.round(data[i].value * 100) / 100;
                       }
 
