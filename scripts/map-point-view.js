@@ -48,7 +48,7 @@ var MapPointView = function(map) {
   var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
   renderer = (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers;
  
-  // Create and register layer
+  // Create default and cluster layer
   this.layer = new OpenLayers.Layer.Vector(
       "MapPointViewLayer",
       {
@@ -71,7 +71,12 @@ var MapPointView = function(map) {
         visibility: true
       }
   );
-  this.map.addLayers([this.layer]);
+
+  // Create heatmap layer
+  this.heatmap = new Heatmap.Layer('Heatmap');
+
+  // Register layers
+  this.map.addLayers([this.layer, this.heatmap]);
 
   this.data = {data: [], projection: null};
   this.data_represent_type = DATA_REPRESENT_TYPE_DEFAULT;
@@ -92,12 +97,18 @@ UpdateFeatures: function () {
                   switch (this.data_represent_type) {
                     case DATA_REPRESENT_TYPE_CLUSTER:
                       clustering_data = this.ClusterateFeatures();
+                      this.layer.visible = true;
+                      this.heatmap.visible = false;
                       break;
                     case DATA_REPRESENT_TYPE_HEAT_MAP:
-                      alert('Not implemented yet');
-                      break;
+                      this.HeatMapCanvas();
+                      this.layer.visible = false;
+                      this.heatmap.visible = true;
+                      return;
                     default:
                       clustering_data = this.DefaultFeatures();
+                      this.layer.visible = true;
+                      this.heatmap.visible = false;
                       break;
                   }
 
@@ -317,5 +328,22 @@ ClusterateFeatures: function () {
                       }
 
                       return data;
-                    }
+                    },
+
+/**
+ *
+ */
+HeatMapCanvas: function () {
+                 while (this.heatmap.points.length) {
+                   this.heatmap.removeSource(this.heatmap.points[0]);
+                 }
+
+
+                 for (var i in this.data.data) {
+                   var data = this.data.data[i];
+                   this.heatmap.addSource(new Heatmap.Source(
+                         new OpenLayers.LonLat(data.x, data.y)
+                   ));
+                 }
+               }
 };
