@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ $# -lt 3 ]; then
+    echo "This script download definitions for proj4js.
+    Usage: $0 <from number> <to number> <path to save>
+    For example: $0 2000 2002 ."
+    exit $?
+fi
+
+FROM=$1
+TO=$2
+SAVE_TO=$3
+URL=http://spatialreference.org/ref/epgs/
+
+
+for i in `seq ${FROM} ${TO}`
+do
+    echo -n "Downloading EPGS$i... "
+    wget -o ${SAVE_TO}/EPGS$i.js ${URL}$i/proj4js/
+    echo "DONE"
+done
+
+echo "All definitions have been downloaded."

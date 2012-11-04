@@ -10,12 +10,13 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/jquery-ui.min.js"></script>
 
 <!-- OpenLayers API -->
-<script type="text/javascript" src="OpenLayers/OpenLayers.js"></script>
+<script type="text/javascript" src="scripts/OpenLayers/OpenLayers.js"></script>
 
 <!-- Useful libraries -->
 <script type="text/javascript" src="scripts/ben-nadel-parse-csv.js"></script>
 <script type="text/javascript" src="scripts/stream.js"></script>
 <script type="text/javascript" src="scripts/dbf.js"></script>
+<script type="text/javascript" src="scripts/proj4js/proj4js-compressed.js"></script>
 <!-- <script type="text/javascript" src="scripts/heatmap.js"></script> -->
 <script type="text/javascript" src="scripts/HeatmapLayer.js"></script>
 
@@ -23,6 +24,10 @@
 <script type="text/javascript" src="scripts/map-point-view.js"></script>
 <script type="text/javascript" src="scripts/map-point-view-data.js"></script>
 <script type="text/javascript" src="scripts/map-point-view-ui.js"></script>
+
+<!-- EPSG definitions -->
+<script type="text/javascript" src="scripts/proj4js/defs/EPSG28483.js"></script>
+<script type="text/javascript" src="scripts/proj4js/defs/EPSG900913.js"></script>
 
 <style>
     body { font-size: 62.5%; }
@@ -59,7 +64,26 @@
             modal: true
         });
 
-        $('#proj_src').val('EGSP:28483');
+        /**
+         * Initialize list of projections in select
+         */
+        // At begin sort all projections
+        var sorted_proj = [];
+        for (var i in Proj4js.defs) {
+            sorted_proj.push(i);
+        }
+        sorted_proj.sort();
+
+        for (var i in sorted_proj) {
+            var proj = sorted_proj[i];
+            var option = $('<option></option')
+                .attr('value', proj)
+                .text(proj);
+            if (i == 0) {
+                option.attr('selected', 'selected');
+            }
+            $('#proj_src').append(option);
+        }
     }
 
 </script>
@@ -92,7 +116,7 @@
                 <label for="value">Value</label>
                 <select id="value" name="value" class="user-data"></select>
                 <label for="proj_src">Projection source</label>
-                <input type="text" id="proj_src" name="proj_src" class="projection" />
+                <select id="proj_src" name="proj_src" class="projection"></select>
             </fieldset>
         </form>
     </div>
