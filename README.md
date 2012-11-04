@@ -1,8 +1,8 @@
 **OpenLayers**
 
-./OpenLayers/OpenLayers.js
-            /theme/
-            /img/
+    ./scripts/OpenLayers/OpenLayers.js
+                        /theme/
+                        /img/
 
 **Links**
 

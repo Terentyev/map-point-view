@@ -71,7 +71,8 @@ var MapPointView = function(map) {
             labelOutlineWidth: 1
         }}),
         renderers: renderer,
-        visibility: true
+        visibility: true,
+        projection: this.map.layers[0].projection
       }
   );
   this.map.addLayers([this.layer]);
@@ -79,7 +80,7 @@ var MapPointView = function(map) {
   this.data = {data: [], projection: null};
   this.data_represent_type = DATA_REPRESENT_TYPE_DEFAULT;
 
-  this.UpdateFeatures();
+//  this.UpdateFeatures();
   this.map.events.register("zoomend", this, function(e) {
       e.object.MapPointView.UpdateFeatures();
   });
@@ -109,9 +110,8 @@ UpdateFeatures: function () {
                   // Add features to layer
                   for (var i in clustering_data) {
                     var data = clustering_data[i];
-                    var point = this
-                      .CreatePoint(data.x, data.y)
-                      .transform(this.data.projection, this.layer.projection);
+                    var point = this.CreatePoint(data.x, data.y);
+                    point = point.transform(this.data.projection, this.layer.projection);
 
                     this.layer.addFeatures([
                         this.CreateCircle(point, data.r, data.value)
