@@ -77,7 +77,13 @@ var MapPointView = function(map) {
   );
 
   // Create heatmap layer
-  this.heatmap = new Heatmap.Layer('Heatmap');
+  this.heatmap = new OpenLayers.Layer.Heatmap(
+      'Heatmap',
+      this.map,
+      this.layer,
+      {visible: true, radius: MIN_CLUSTER_RADIUS},
+      {isBaseLayer: false, opacity: 0.3, projection: this.layer.projection}
+  );
 
   // Register layers
   this.map.addLayers([this.layer, this.heatmap]);
@@ -136,7 +142,7 @@ CreateTransformedFeatures: function (data) {
                                features.push({
                                    point: point,
                                    r: data[i].r,
-                                   value: data[i].value,
+                                   value: data[i].value
                                });
                              }
 
@@ -146,7 +152,8 @@ CreateTransformedFeatures: function (data) {
  * Cleare layer and add features to layer.
  */
 SetFeaturesOnLayer: function (features_info) {
-                     this.layer.removeAllFeatures();
+                      this.ClearLayer();
+                      this.ClearHeatmap();
 
                       // Add features to layer
                       for (var i in features_info) {
@@ -160,10 +167,49 @@ SetFeaturesOnLayer: function (features_info) {
                             )
                         ]);
                       }
-
-                      this.layer.visibility = true;
-                      this.heatmap.visibility = false;
                     },
+
+/**
+ * Update heat-map canvas.
+ */
+HeatMapCanvas: function (features_info) {
+                 var heatmap_data_set = {max: null, data: []};
+
+                 this.ClearLayer();
+
+                 for (var i in features_info) {
+                   var feature_info = features_info[i];
+                   var p = feature_info.point;
+
+                   if (heatmap_data_set.max === null
+                       || heatmap_data_set.max < feature_info.value
+                      ) {
+                     heatmap_data_set.max = feature_info.value;
+                   }
+
+                   heatmap_data_set.data.push({
+                       lonlat: new OpenLayers.LonLat(p.x, p.y),
+                       count: feature_info.value
+                   });
+                 }
+
+                 this.heatmap.setDataSet(heatmap_data_set);
+               },
+
+/**
+ * Clear this.layer.
+ */
+ClearLayer: function() {
+              this.layer.removeAllFeatures();
+            },
+
+/**
+ * Clear this.heatmap.
+ */
+ClearHeatmap: function() {
+              this.heatmap.setDataSet({max: 0, data: []});
+            },
+
 /**
  * Create point object.
  */
@@ -371,26 +417,5 @@ ClusterateFeatures: function () {
                       }
 
                       return data;
-                    },
-
-/**
- * Update heat-map canvas.
- */
-HeatMapCanvas: function (features_info) {
-                 while (this.heatmap.points.length) {
-                   this.heatmap.removeSource(this.heatmap.points[0]);
-                 }
-
-
-                 for (var i in features_info) {
-                   var p = features_info[i].point;
-
-                   this.heatmap.addSource(new Heatmap.Source(
-                         new OpenLayers.LonLat(p.x, p.y)
-                   ));
-                 }
-
-                 this.layer.visibility = false;
-                 this.heatmap.visibility = true;
-               }
+                    }
 };
