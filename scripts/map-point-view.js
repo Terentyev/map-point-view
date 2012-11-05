@@ -50,7 +50,7 @@ var MapPointView = function(map) {
 
   var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
   renderer = (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers;
- 
+
   // Create default and cluster layer
   this.layer = new OpenLayers.Layer.Vector(
       "MapPointViewLayer",
@@ -62,7 +62,7 @@ var MapPointView = function(map) {
             fillOpacity: 1,
             pointerEvents: "visiblePainted",
             label : "${value}",
-            
+
             fontColor: "black",
             fontSize: "10px",
             fontFamily: "Courier New, monospace",
@@ -194,6 +194,7 @@ HeatMapCanvas: function (features_info) {
                  }
 
                  this.heatmap.setDataSet(heatmap_data_set);
+                 this.heatmap.updateLayer();
                },
 
 /**
@@ -231,7 +232,7 @@ CreateCircle: function (point, radius, value) {
                       40,
                       0
                     ),
-                    {'value': value}
+                    {value: value}
                 );
               },
 
@@ -337,85 +338,117 @@ ClusterateFeatures: function () {
                         }
 
                         // Merge points and clusters
-                        var new_cluster = clone(clusters[remember_i]).concat(clusters[remember_j]);
-                        var new_x = 0;
-                        var new_y = 0;
-                        for (var i in new_cluster) {
-                          new_x += data[new_cluster[i]].x / new_cluster.length;
-                          new_y += data[new_cluster[i]].y / new_cluster.length;
-                        }
-
-                        var new_distance_row = [];
-                        distances.push(new_distance_row);
-                        clusters.push(new_cluster);
-                        delete distances[remember_i];
-                        delete distances[remember_j];
-                        delete clusters[remember_i];
-                        delete clusters[remember_j];
-
-                        for (var i in distances) {
-                          if (i*1+1 == distances.length) break;
-
-                          delete distances[i][remember_j];
-                          delete distances[i][remember_i];
-
-                          // Calculate center of clusters[i].
-                          var ix = 0;
-                          var iy = 0;
-                          for (var j in clusters[i]) {
-                            ix += data[clusters[i][j]].x / clusters[i].length;
-                            iy += data[clusters[i][j]].y / clusters[i].length;
-                          }
-
-                          var new_distance = Math.sqrt(
-                              sqr(new_x - ix) +
-                              sqr(new_y - iy)
-                          );
-                          new_distance_row[i] = new_distance;
-                        }
+                        this.MergeClusters(
+                            clusters,
+                            distances,
+                            remember_i,
+                            remember_j
+                        );
                       }
 
-                      data = [];
-                      var min_value = null;
-                      var max_value = null;
-                      // Build features data by clusters.
-                      for (var i in clusters) {
-                        var x = 0;
-                        var y = 0;
-                        var value = 0;
-                        for (var j in clusters[i]) {
-                          x += this.data.data[clusters[i][j]].x / clusters[i].length;
-                          y += this.data.data[clusters[i][j]].y / clusters[i].length;
-                          value += 1*this.data.data[clusters[i][j]].value;
-                        }
-                        data.push({
-                            x: x,
-                            y: y,
-                            'value': value
-                        });
-                        if (min_value === null || min_value > value) {
-                          min_value = value;
-                        }
-                        if (max_value === null || max_value < value) {
-                          max_value = value;
-                        }
-                      }
+                      return this.ConvertClustersToFeaturesInfo(clusters);
+                    },
 
-                      if (max_value == min_value) {
-                        max_value += 1;
-                      }
+/**
+ * Merge clusters.
+ */
+MergeClusters: function (clusters, distances, remember_i, remember_j) {
+                 var data = this.data.data;
+                 var new_cluster = clone(clusters[remember_i]).concat(clusters[remember_j]);
+                 var new_distance_row = [];
+                 var new_distance;
+                 var new_x = 0;
+                 var new_y = 0;
 
-                      var rad_koef =
-                        (MAX_CLUSTER_RADIUS - MIN_CLUSTER_RADIUS)
-                        / (max_value - min_value);
-                      // Set for each cluster a cluster-radius
-                      for (var i in data) {
-                        data[i].r =
-                          rad_koef * (data[i].value - min_value)
-                          + MIN_CLUSTER_RADIUS;
-                        data[i].value = Math.round(data[i].value * 100) / 100;
-                      }
+                 for (var i in new_cluster) {
+                   new_x += data[new_cluster[i]].x / new_cluster.length;
+                   new_y += data[new_cluster[i]].y / new_cluster.length;
+                 }
 
-                      return data;
-                    }
+                 distances.push(new_distance_row);
+                 clusters.push(new_cluster);
+                 delete distances[remember_i];
+                 delete distances[remember_j];
+                 delete clusters[remember_i];
+                 delete clusters[remember_j];
+
+                 for (var i in distances) {
+                   if (i*1+1 == distances.length) break;
+
+                   delete distances[i][remember_j];
+                   delete distances[i][remember_i];
+
+                   // Calculate center of clusters[i].
+                   var ix = 0;
+                   var iy = 0;
+                   for (var j in clusters[i]) {
+                     ix += data[clusters[i][j]].x / clusters[i].length;
+                     iy += data[clusters[i][j]].y / clusters[i].length;
+                   }
+
+                   new_distance = Math.sqrt(
+                       sqr(new_x - ix) +
+                       sqr(new_y - iy)
+                   );
+                   new_distance_row[i] = new_distance;
+                 }
+               },
+
+/**
+ * Convert clusters to features_info structure.
+ * Return array of structures:
+ *   {
+ *     point: <OpenLayers.Geomentry.Point>,
+ *     r: <circle radius>,
+ *     value: <value in this point>
+ *   }
+ */
+ConvertClustersToFeaturesInfo: function(clusters) {
+                                 var data = [];
+                                 var min_value = null;
+                                 var max_value = null;
+
+                                 // Build features data by clusters.
+                                 for (var i in clusters) {
+                                   var x = 0;
+                                   var y = 0;
+                                   var value = 0;
+
+                                   for (var j in clusters[i]) {
+                                     x += this.data.data[clusters[i][j]].x / clusters[i].length;
+                                     y += this.data.data[clusters[i][j]].y / clusters[i].length;
+                                     value += 1*this.data.data[clusters[i][j]].value;
+                                   }
+
+                                   data.push({
+                                       x: x,
+                                       y: y,
+                                       value: value
+                                   });
+                                   if (min_value === null || min_value > value) {
+                                     min_value = value;
+                                   }
+                                   if (max_value === null || max_value < value) {
+                                     max_value = value;
+                                   }
+                                 }
+
+                                 if (max_value == min_value) {
+                                   max_value += 1;
+                                 }
+
+                                 var rad_koef =
+                                   (MAX_CLUSTER_RADIUS - MIN_CLUSTER_RADIUS)
+                                   / (max_value - min_value);
+
+                                 // Set for each cluster a cluster-radius
+                                 for (var i in data) {
+                                   data[i].r =
+                                     rad_koef * (data[i].value - min_value)
+                                     + MIN_CLUSTER_RADIUS;
+                                   data[i].value = Math.round(data[i].value * 100) / 100;
+                                 }
+
+                                 return data;
+                               }
 };
