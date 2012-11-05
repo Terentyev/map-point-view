@@ -85,9 +85,8 @@ var MapPointView = function(map) {
   this.data = {data: [], projection: null};
   this.data_represent_type = DATA_REPRESENT_TYPE_DEFAULT;
 
-//  this.UpdateFeatures();
   this.map.events.register("zoomend", this, function(e) {
-      e.object.MapPointView.UpdateFeatures();
+      e.object.MapPointView.Update();
   });
 };
 
@@ -95,59 +94,91 @@ MapPointView.prototype = {
 /**
  * Refresh all features on layer.
  */
-UpdateFeatures: function () {
-                  // Clusterate data
-                  var clustering_data;
+Update: function () {
                   switch (this.data_represent_type) {
                     case DATA_REPRESENT_TYPE_CLUSTER:
-                      clustering_data = this.ClusterateFeatures();
-                      this.layer.visible = true;
-                      this.heatmap.visible = false;
+                      this.SetFeaturesOnLayer(
+                          this.CreateTransformedFeatures(
+                            this.ClusterateFeatures()
+                          )
+                      );
                       break;
                     case DATA_REPRESENT_TYPE_HEAT_MAP:
-                      this.HeatMapCanvas();
-                      this.layer.visible = false;
-                      this.heatmap.visible = true;
-                      return;
-                    default:
-                      clustering_data = this.DefaultFeatures();
-                      this.layer.visible = true;
-                      this.heatmap.visible = false;
+                      this.HeatMapCanvas(
+                          this.CreateTransformedFeatures(
+                            this.data.data
+                          )
+                      );
                       break;
-                  }
-
-                  this.layer.removeAllFeatures();
-
-                  // Add features to layer
-                  for (var i in clustering_data) {
-                    var data = clustering_data[i];
-                    var point = this.CreatePoint(data.x, data.y);
-                    point = point.transform(this.data.projection, this.layer.projection);
-
-                    this.layer.addFeatures([
-                        this.CreateCircle(point, data.r, data.value)
-                    ]);
+                    default:
+                      this.SetFeaturesOnLayer(
+                          this.CreateTransformedFeatures(
+                            this.DefaultFeatures()
+                          )
+                      );
+                      break;
                   }
                 },
 
 /**
- * Create point object.
- * It's temporary function TODO: delete this function.
+ * Create transformed features for layer.
  */
-CreatePoint: function (x, y) {
-               return new OpenLayers.Geometry.Point(x, y);
+CreateTransformedFeatures: function (data) {
+                             var features = [];
+
+                             for (var i in data) {
+                               var point = this.CreatePoint(
+                                   data[i].x,
+                                   data[i].y,
+                                   this.data.projection
+                               );
+
+                               features.push({
+                                   point: point,
+                                   r: data[i].r,
+                                   value: data[i].value,
+                               });
+                             }
+
+                             return features;
+                           },
+/**
+ * Cleare layer and add features to layer.
+ */
+SetFeaturesOnLayer: function (features_info) {
+                     this.layer.removeAllFeatures();
+
+                      // Add features to layer
+                      for (var i in features_info) {
+                        var feature_info = features_info[i];
+
+                        this.layer.addFeatures([
+                            this.CreateCircle(
+                              feature_info.point,
+                              feature_info.r,
+                              feature_info.value
+                            )
+                        ]);
+                      }
+
+                      this.layer.visibility = true;
+                      this.heatmap.visibility = false;
+                    },
+/**
+ * Create point object.
+ */
+CreatePoint: function (x, y, projection) {
+               return new OpenLayers.Geometry.Point(x, y)
+                 .transform(projection, this.layer.projection);
              },
 
 /**
  * Create circle object.
- * TODO: replace CreatePoint() on argument of this function.
  */
 CreateCircle: function (point, radius, value) {
                 return new OpenLayers.Feature.Vector(
                     OpenLayers.Geometry.Polygon.createRegularPolygon(
                       point,
-                      // TODO: replace this hard code radius on argument of
-                      // function.
                       // This radius should be passed in map units and we should
                       // scale from pixels.
                       radius * this.map.getResolution(),
@@ -188,7 +219,7 @@ LoadData: function (data, projection) {
                 value: data.data[i][data.keys.value]
               });
             }
-            this.UpdateFeatures();
+            this.Update();
             console.log('Data has been loaded');
           },
 
@@ -197,7 +228,7 @@ LoadData: function (data, projection) {
  */
 SetDataRepresentType: function(dr_type) {
                         this.data_represent_type = dr_type;
-                        this.UpdateFeatures();
+                        this.Update();
                       },
 
 /**
@@ -343,19 +374,23 @@ ClusterateFeatures: function () {
                     },
 
 /**
- *
+ * Update heat-map canvas.
  */
-HeatMapCanvas: function () {
+HeatMapCanvas: function (features_info) {
                  while (this.heatmap.points.length) {
                    this.heatmap.removeSource(this.heatmap.points[0]);
                  }
 
 
-                 for (var i in this.data.data) {
-                   var data = this.data.data[i];
+                 for (var i in features_info) {
+                   var p = features_info[i].point;
+
                    this.heatmap.addSource(new Heatmap.Source(
-                         new OpenLayers.LonLat(data.x, data.y)
+                         new OpenLayers.LonLat(p.x, p.y)
                    ));
                  }
+
+                 this.layer.visibility = false;
+                 this.heatmap.visibility = true;
                }
 };
