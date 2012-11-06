@@ -84,7 +84,7 @@
             var option = $('<option></option')
                 .attr('value', proj)
                 .text(proj);
-            if (i == 0) {
+            if (proj === 'EPSG:28483') {
                 option.attr('selected', 'selected');
             }
             $('#proj_src').append(option);
