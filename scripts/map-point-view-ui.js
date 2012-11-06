@@ -62,11 +62,12 @@ function MapPointViewUI_load_data(file_input, form) {
 function MapPointViewUI_select_fields(data, form) {
   $('select.user-data', form).each(function (index) {
       $(this).find('option').remove();
+      var pattern = $(this).attr('id').toLowerCase();
       for (var j in data.headers) {
         var option = $('<option></option>')
           .attr('value', j)
           .text(data.headers[j]);
-        if (j == index) {
+        if (data.headers[j].toLowerCase().indexOf(pattern) !== -1) {
           option.attr('selected', 'selected');
         }
 
