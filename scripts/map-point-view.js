@@ -14,6 +14,7 @@
 var DATA_REPRESENT_TYPE_DEFAULT = 'default';
 var DATA_REPRESENT_TYPE_CLUSTER = 'cluster';
 var DATA_REPRESENT_TYPE_HEAT_MAP = 'heatmap';
+var DATA_REPRESENT_TYPE_DENSITY_HEAT_MAP = 'density_heatmap';
 
 var MAX_CLUSTER_RADIUS = 20;
 var MIN_CLUSTER_RADIUS = 10;
@@ -124,11 +125,20 @@ Update: function () {
                           )
                       );
                       break;
+                    case DATA_REPRESENT_TYPE_DENSITY_HEAT_MAP:
+                      this.HeatMapCanvas(
+                          this.CreateTransformedFeatures(
+                            this.DensityFeatures()
+                          ),
+                          3
+                      );
+                      break;
                     case DATA_REPRESENT_TYPE_HEAT_MAP:
                       this.HeatMapCanvas(
                           this.CreateTransformedFeatures(
                             this.data.data
-                          )
+                          ),
+                          null
                       );
                       break;
                     default:
@@ -187,8 +197,8 @@ SetFeaturesOnLayer: function (features_info) {
 /**
  * Update heat-map canvas.
  */
-HeatMapCanvas: function (features_info) {
-                 var heatmap_data_set = {max: null, data: []};
+HeatMapCanvas: function (features_info, max) {
+                 var heatmap_data_set = {max: max, data: []};
 
                  this.ClearLayer();
 
@@ -363,6 +373,17 @@ ClusterateFeatures: function () {
 
                       return this.ConvertClustersToFeaturesInfo(clusters);
                     },
+
+/**
+ * Set to all features equal value.
+ */
+DensityFeatures: function () {
+                   var data = clone(this.data.data);
+                   for (var i in data) {
+                     data[i].value = this.data.max;
+                   }
+                   return data;
+                 },
 
 /**
  * Merge clusters.
