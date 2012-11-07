@@ -61,6 +61,9 @@
         map.zoomToMaxExtent();
 
         new MapPointView(map);
+        map.MapPointView.SetDataRepresentType(
+            $('#data-represent-type').val()
+        );
 
         $('#select-fields-form').dialog({
             autoOpen: false,
@@ -99,7 +102,7 @@
 <div>
     <input type="file" id="data_file" name="data_file"/>
     <button onclick="MapPointViewUI_load_data('data_file', $('#select-fields-form'));">Load</button>
-    <select onchange="map.MapPointView.SetDataRepresentType($(this).val());">
+    <select id="data-represent-type" onchange="map.MapPointView.SetDataRepresentType($(this).val());">
       <option value="default" selected="selected">Default</option>
       <option value="cluster">Cluster</option>
       <option value="heatmap">Heat map</option>
