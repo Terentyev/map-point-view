@@ -345,6 +345,7 @@
                 me.set("width", config.width || 0);
                 me.set("height", config.height || 0);
                 me.set("debug", config.debug);
+                me.set("intensity", config.intensity || function(c,m) {return (c)?(c/m):'0.1';});
 
                 if(config.legend){
                     var legendCfg = config.legend;
@@ -552,13 +553,16 @@
                     ctx = me.get("actx"),
                     max = me.get("max"),
                     bounds = me.get("bounds"),
+                    intensity = me.get("intensity"),
                     xb = x - (1.5 * radius) >> 0, yb = y - (1.5 * radius) >> 0,
                     xc = x + (1.5 * radius) >> 0, yc = y + (1.5 * radius) >> 0;
 
-                ctx.shadowColor = ('rgba(0,0,0,'+((count)?(count/me.store.max):'0.1')+')');
+                ctx.shadowColor = ('rgba(0,0,0,'+intensity(count, me.store.max)+')');
                 ctx.shadowOffsetX = 1000;
                 ctx.shadowOffsetY = 1000;
                 ctx.shadowBlur = 15;
+                // drawed circles should be invisible
+                ctx.fillStyle = 'rgba(0,0,0,0)';
                 ctx.beginPath();
                 ctx.arc(x - 1000, y - 1000, radius, 0, Math.PI * 2, true);
                 ctx.closePath();
