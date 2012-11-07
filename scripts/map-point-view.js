@@ -83,27 +83,18 @@ var MapPointView = function(map) {
       this.layer,
       {
         visible: true,
-        radius: MIN_CLUSTER_RADIUS,
+        radius: MAX_CLUSTER_RADIUS,
         // Opacity is 1..100
         opacity: 100,
         gradient: {
-/**
- * I can't select best version and leave both here.
- */
-/*
-          0.65: "rgb(0,0,255)",
-          0.70: "rgb(0,255,255)",
+          0.50: "rgb(0,0,255)",
+          0.65: "rgb(0,255,255)",
           0.75: "rgb(0,255,0)",
-          0.90: "yellow",
-          0.95: "rgb(255,0,0)"
-//*/
-/**/
-          0.70: "rgb(0,0,255)",
-          0.75: "rgb(0,255,255)",
-          0.80: "rgb(0,255,0)",
-          0.90: "yellow",
-          0.95: "rgb(255,0,0)"
-//*/
+          0.97: "yellow",
+          1.00: "rgb(255,0,0)"
+        },
+        intensity: function (c, m) {
+          return (c)?(0.5 + c*0.5/m):'0.5';
         }
       },
       {isBaseLayer: false, opacity: 0.3, projection: this.layer.projection}
